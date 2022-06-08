@@ -1,8 +1,8 @@
 const express = require('express');
+const controller = require('../controllers/books.controller');
 
 const router = express.Router();
-router.get('/', (req, res) => {
-	res.status(200).json({ books: [] });
-});
+
+router.get('/', controller.getAll).get('/:id', controller.getSingle);
 
 module.exports = router;
