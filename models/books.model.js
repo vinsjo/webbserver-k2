@@ -14,22 +14,20 @@ function dbConnection(callback) {
 	};
 }
 
-const getAll = dbConnection((resolve, reject) =>
-	db.all('SELECT * FROM books', (err, rows) =>
-		err ? reject(err) : resolve(rows)
-	)
-);
-
-const getSingle = dbConnection((resolve, reject, id) =>
-	db.get('SELECT * FROM books WHERE id = ?', id, (err, row) =>
-		err ? reject(err) : resolve(row)
-	)
-);
-
-const deleteBook = dbConnection((resolve, reject, id) => {
-	db.run('DELETE FROM books WHERE id = ?', id, function (err) {
-		err ? reject(err) : resolve(this.changes);
-	});
-});
-
-module.exports = { all: getAll, get: getSingle, delete: deleteBook };
+module.exports = {
+	all: dbConnection((resolve, reject) =>
+		db.all('SELECT * FROM books', (err, rows) =>
+			err ? reject(err) : resolve(rows)
+		)
+	),
+	get: dbConnection((resolve, reject, id) =>
+		db.get('SELECT * FROM books WHERE id = ?', id, (err, row) =>
+			err ? reject(err) : resolve(row)
+		)
+	),
+	delete: dbConnection((resolve, reject, id) => {
+		db.run('DELETE FROM books WHERE id = ?', id, function (err) {
+			err ? reject(err) : resolve(this.changes);
+		});
+	}),
+};
