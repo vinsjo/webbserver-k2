@@ -1,76 +1,116 @@
 const model = require('../models/books.model');
+const {
+	sendErrorResponse,
+	createErrorResponse,
+} = require('../utils/errorResponse');
 
-const notFoundID = (res, id) => {
-	res.status(404).json({ error: `A book with id '${id}' does not exist.` });
+const controllerResponse = (responseCallback) => {
+	return async (req, res) => {
+		try {
+			const body = await responseCallback(req, res);
+			res.json(body);
+		} catch (err) {
+			sendErrorResponse(res, err);
+		}
+	};
 };
 
-const emptyBodyResponse = (res) => {
-	res.status(400).json({ error: "Request body can't be empty" });
-};
+const notFoundID = (id) =>
+	createErrorResponse(404, `A book with id '${id}' does not exist.`);
+
+const emptyBodyResponse = () =>
+	createErrorResponse(400, "Request body can't be empty");
 
 module.exports = {
-	all: async (req, res) => {
+	all: controllerResponse(async () => {
 		const books = await model.all();
-		if (!books)
-			return res.status(500).json({ message: 'An error occured' });
-		res.json(books);
-	},
-	get: async (req, res) => {
-		const { id } = req.params;
-		if (!id) return;
-		const book = await model.get(id);
-		if (!changes) return notFoundID(res, id);
-		res.json(book);
-	},
-	delete: async (req, res) => {
-		const { id } = req.params;
-		if (!id) return;
-		const changes = await model.delete(id);
-		if (!changes) return notFoundID(res, id);
-		res.json({ status: 'deleted' });
-	},
-	put: async (req, res) => {
+		if (!books) throw createErrorResponse(500, 'An Unknown Error Occurred');
+		return books;
+	}),
+	get: controllerResponse(async (req, res) => {
+		const book = await model.get(req.params.id);
+		if (!book) throw notFoundID(id);
+		return book;
+	}),
+	delete: controllerResponse(async (req, res) => {
+		const changes = await model.delete(req.params.id);
+		if (!changes) throw notFoundID(id);
+		return { status: 'deleted' };
+	}),
+	post: controllerResponse(async (req, res) => {
+		if (!Object.keys(req.body).length) throw emptyBodyResponse();
+		const book = {
+			title: null,
+			author: null,
+			genre: null,
+			qty: null,
+		};
+		for (const key of Object.keys(book)) {
+			if (req.body[key] === undefined) {
+				throw createErrorResponse(
+					400,
+					`Required key '${key}' must be included in request body.`
+				);
+			}
+			book[key] = req.body[key];
+		}
+
+		if (typeof book.qty !== 'number') book.qty = 1;
+
+		const id = await model.insert(book);
+
+		if (!id) {
+			throw createErrorResponse(
+				500,
+				'An error occured when adding the book.'
+			);
+		}
+		return { id, ...book };
+	}),
+	put: controllerResponse(async (req, res) => {
 		const {
 			params: { id },
 			body,
 		} = req;
-		if (!Object.keys(body).length) return emptyBodyResponse(res);
+		if (!Object.keys(body).length) throw emptyBodyResponse(res);
 
 		for (const key of ['title', 'author', 'genre', 'qty']) {
 			if (body[key] !== 'undefined') continue;
-			return res.status(400).json({
-				error: `Required key '${key}' must be included in request body.`,
-			});
+			throw createErrorResponse(
+				400,
+				`Required key '${key}' must be included in request body.`
+			);
 		}
 		const changes = await model.update(id, body);
-		if (!changes) return notFoundID(res, id);
+		if (!changes) throw notFoundID(res, id);
 
 		const updated = await model.get(id);
 		if (!updated) {
-			return res.status(500).json({
-				error: 'An error occured when getting the updated book.',
-			});
+			throw createErrorResponse(
+				500,
+				'An error occured when retrieving the updated book.'
+			);
 		}
-
-		res.json(updated);
-	},
-	patch: async (req, res) => {
+		return updated;
+	}),
+	patch: controllerResponse(async (req, res) => {
 		const {
 			params: { id },
 			body,
 		} = req;
-		if (!Object.keys(body).length) return emptyBodyResponse(res);
+
+		if (!Object.keys(body).length) throw emptyBodyResponse(res);
 
 		const changes = await model.update(id, body);
-		if (!changes) return notFoundID(res, id);
+		if (!changes) throw notFoundID(res, id);
 
 		const updated = await model.get(id);
 		if (!updated) {
-			return res.status(500).json({
-				error: 'An error occured when getting the updated book.',
-			});
+			throw createErrorResponse(
+				500,
+				'An error occured when retrieving the updated book.'
+			);
 		}
-
-		res.json(updated);
-	},
+		return updated;
+	}),
 };

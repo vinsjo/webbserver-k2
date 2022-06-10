@@ -5,6 +5,7 @@ const router = express.Router();
 
 router
 	.get('/', controller.all)
+	.post('/', controller.post)
 	.get('/:id', controller.get)
 	.delete('/:id', controller.delete)
 	.put('/:id', controller.put)
