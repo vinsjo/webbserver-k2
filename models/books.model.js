@@ -30,4 +30,20 @@ module.exports = {
 			err ? reject(err) : resolve(this.changes);
 		});
 	}),
+	update: dbConnection((resolve, reject, id, data) => {
+		if (!(data instanceof Object)) throw 'Invalid Data';
+		const values = ['title', 'author', 'genre', 'qty']
+			.map((key) => (!data[key] ? null : { key, value: data[key] }))
+			.filter((entry) => !!entry);
+		if (!values.length) throw 'No Updated Data';
+		db.run(
+			`UPDATE books SET ${values
+				.map(({ key }) => `${key} = ?`)
+				.join(', ')} WHERE id = ?`,
+			[...values.map(({ value }) => value), id],
+			function (err) {
+				err ? reject(err) : resolve(this.changes);
+			}
+		);
+	}),
 };

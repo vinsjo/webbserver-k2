@@ -6,6 +6,12 @@ const router = express.Router();
 router
 	.get('/', controller.all)
 	.get('/:id', controller.get)
-	.delete('/:id', controller.delete);
+	.delete('/:id', controller.delete)
+	.put('/:id', controller.put)
+	.patch('/:id', controller.patch)
+	.all('*', (req, res) => {
+		console.log(req.params);
+		res.status(405).end();
+	});
 
 module.exports = router;
