@@ -11,7 +11,7 @@ function dbConnection(callback) {
 		} catch (err) {
 			if (err.errno === 19) {
 				throw createErrorResponse(
-					400,
+					409,
 					'A book with that title already exists'
 				);
 			}

@@ -7,8 +7,7 @@ const {
 const controllerResponse = (responseCallback) => {
 	return async (req, res) => {
 		try {
-			const body = await responseCallback(req, res);
-			res.json(body);
+			await responseCallback(req, res);
 		} catch (err) {
 			sendErrorResponse(res, err);
 		}
@@ -25,17 +24,17 @@ module.exports = {
 	all: controllerResponse(async () => {
 		const books = await model.all();
 		if (!books) throw createErrorResponse(500, 'An Unknown Error Occurred');
-		return books;
+		res.json(books);
 	}),
 	get: controllerResponse(async (req, res) => {
 		const book = await model.get(req.params.id);
 		if (!book) throw notFoundID(id);
-		return book;
+		res.json(book);
 	}),
 	delete: controllerResponse(async (req, res) => {
 		const changes = await model.delete(req.params.id);
 		if (!changes) throw notFoundID(id);
-		return { status: 'deleted' };
+		res.json({ status: 'deleted' });
 	}),
 	post: controllerResponse(async (req, res) => {
 		if (!Object.keys(req.body).length) throw emptyBodyResponse();
@@ -65,7 +64,7 @@ module.exports = {
 				'An error occured when adding the book.'
 			);
 		}
-		return { id, ...book };
+		res.status(201).json({ id, ...book });
 	}),
 	put: controllerResponse(async (req, res) => {
 		const {
@@ -91,7 +90,7 @@ module.exports = {
 				'An error occured when retrieving the updated book.'
 			);
 		}
-		return updated;
+		res.json(updated);
 	}),
 	patch: controllerResponse(async (req, res) => {
 		const {
@@ -111,6 +110,6 @@ module.exports = {
 				'An error occured when retrieving the updated book.'
 			);
 		}
-		return updated;
+		res.json(updated);
 	}),
 };
