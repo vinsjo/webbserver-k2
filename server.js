@@ -1,6 +1,5 @@
 const express = require('express');
 const bookRouter = require('./routers/books.router');
-const routers = require('./routers');
 
 const PORT = (() => {
 	const port = parseInt(process.argv[2]);
