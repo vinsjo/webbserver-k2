@@ -9,10 +9,6 @@ router
 	.get('/:id', controller.get)
 	.delete('/:id', controller.delete)
 	.put('/:id', controller.put)
-	.patch('/:id', controller.patch)
-	.all('*', (req, res) => {
-		console.log(req.params);
-		res.status(405).end();
-	});
+	.patch('/:id', controller.patch);
 
 module.exports = router;

@@ -1,4 +1,5 @@
 const express = require('express');
+const bookRouter = require('./routers/books.router');
 const routers = require('./routers');
 
 const PORT = (() => {
@@ -10,7 +11,7 @@ const PORT = (() => {
 
 express()
 	.use(express.json())
-	.use('/books', routers.books)
+	.use('/books', bookRouter)
 	.all('*', (req, res) =>
 		res.status(404).json({ error: `Route '${req.url}' does not exist` })
 	)
